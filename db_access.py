@@ -1,11 +1,5 @@
 import pyodbc
-from app import cfg
-
-# Set up database connection
-db = pyodbc.connect(
-    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' + cfg.db['database'] +
-    ';UID=' + cfg.db['username'] + ";PWD=" + cfg.db['password'])
-cursor = db.cursor()
+from app import cursor
 
 
 def get_latest_active_day():

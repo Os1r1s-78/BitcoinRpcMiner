@@ -13,8 +13,39 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 
-# Set up connection to the Bitcoin RPC client
-rpc = AuthServiceProxy("http://%s:%s@%s" % (cfg.rpc['rpcuser'], cfg.rpc['rpcpassword'], cfg.rpc['endpoint']))
+rpc = None
+cursor = None
+
+
+def setup_db():
+    # Set up database connection
+    try:
+        db = pyodbc.connect(
+            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' + cfg.db['database'] +
+            ';UID=' + cfg.db['username'] + ";PWD=" + cfg.db['password'], timeout=15)
+        global cursor
+        cursor = db.cursor()
+        return True
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except Exception as e:
+        print(repr(e))
+        logging.critical(repr(e))
+        return False
+
+
+def setup_rpc():
+    # Set up connection to the Bitcoin RPC client
+    try:
+        global rpc
+        rpc = AuthServiceProxy("http://%s:%s@%s" % (cfg.rpc['rpcuser'], cfg.rpc['rpcpassword'], cfg.rpc['endpoint']))
+        return True
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except Exception as e:
+        print(repr(e))
+        logging.critical(repr(e))
+        return False
 
 
 def execute():
@@ -43,10 +74,30 @@ def execute():
                     latest_tx_output = get_latest_tx_output()
                     if latest_tx_output is not None:  # Choose the next block after the last tx entry
                         active_block_hash = rpc.getblock(latest_tx_output.Blockhash)['nextblockhash']
-                    else:  # Set the next block to the second block (the genesis transaction is not supported by RPC)
-                        active_block_hash = rpc.getblockhash(1)
+                    else:  # Set the next block to the genesis block
+                        active_block_hash = rpc.getblockhash(0)
                         block_timestamp = rpc.getblock(active_block_hash)['time']
                         current_day = datetime.date.fromtimestamp(block_timestamp)
+
+                block = rpc.getblock(active_block_hash)
+                for tx_hash in block['tx']:
+                    # The genesis' blocks transaction cannot be retrieved with the Bitcoin RPC, simply skip it
+                    if tx_hash == '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b':
+                        continue
+
+                    # Process transaction
+                    tx = rpc.getrawtransaction(tx_hash, 1)
+                    for tx_out in tx['vout']:
+                        print()
+                        # todo: implement analysis
+
+                next_block = rpc.getblock(block['nextblockhash'])
+                rounded = time.mktime((current_day + datetime.timedelta(days=1)).timetuple())
+                if next_block['time'] < time.mktime((current_day + datetime.timedelta(days=1)).timetuple()):
+                    active_block_hash = next_block['hash']
+                else:
+                    print()
+                    # todo: implement db insert and var resets
         except JSONRPCException as e:
             print(repr(e))
             logging.critical(repr(e))
@@ -58,12 +109,21 @@ def execute():
 
 
 def main():
+    rpc_loaded = False
+    db_loaded = False
+
+    while not rpc_loaded:
+        rpc_loaded = setup_rpc()
+        if not rpc_loaded:
+            time.sleep(10)
+
+    while not db_loaded:
+        db_loaded = setup_db()
+        if not db_loaded:
+            time.sleep(10)
+
     execute()
 
 
 if __name__ == '__main__':
     main()
-
-# start_time = time.time()
-# best_block_hash = rpc_connection.getbestblockhash()
-# print("--- %s seconds ---" % (time.time() - start_time))
