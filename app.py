@@ -14,7 +14,7 @@ logging.basicConfig(
 )
 
 # Set up connection to the Bitcoin RPC client
-rpc_connection = AuthServiceProxy("http://%s:%s@%s" % (cfg.rpc['rpcuser'], cfg.rpc['rpcpassword'], cfg.rpc['endpoint']))
+rpc = AuthServiceProxy("http://%s:%s@%s" % (cfg.rpc['rpcuser'], cfg.rpc['rpcpassword'], cfg.rpc['endpoint']))
 
 
 def execute():
@@ -31,14 +31,22 @@ def execute():
         try:
             if first_iteration:
                 last_active_day = get_latest_active_day()
+                current_day = last_active_day
                 if last_active_day is not None:
                     delete_data_after_date(last_active_day, 'FrequencyAnalysis')
                     delete_data_after_date(last_active_day, 'SizeAnalysis')
                     delete_data_after_date(last_active_day, 'ProtocolAnalysis')
                 first_iteration = False
             else:
-                # todo: implement
-                print()
+                if active_block_hash == "" or None:
+                    # Choose the next available block
+                    latest_tx_output = get_latest_tx_output()
+                    if latest_tx_output is not None:  # Choose the next block after the last tx entry
+                        active_block_hash = rpc.getblock(latest_tx_output.Blockhash)['nextblockhash']
+                    else:  # Set the next block to the second block (the genesis transaction is not supported by RPC)
+                        active_block_hash = rpc.getblockhash(1)
+                        block_timestamp = rpc.getblock(active_block_hash)['time']
+                        current_day = datetime.date.fromtimestamp(block_timestamp)
         except JSONRPCException as e:
             print(repr(e))
             logging.critical(repr(e))

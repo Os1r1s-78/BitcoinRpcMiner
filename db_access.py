@@ -34,5 +34,14 @@ def __get_latest_analysis(table):
         return None
 
 
+def get_latest_tx_output():
+    cursor.execute('SELECT * FROM dbo.TransactionOutputs WHERE Id = (SELECT MAX(Id) FROM dbo.TransactionOutputs)')
+    row = cursor.fetchone()
+    if row:
+        return row
+    else:
+        return None
+
+
 def delete_data_after_date(date, table):
     cursor.execute('DELETE FROM dbo.' + table + ' WHERE DataDay >= \'' + date.strftime('%Y-%m-%d') + '\'')
