@@ -1,0 +1,1 @@
+BitcoinRpcMiner
