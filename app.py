@@ -21,15 +21,15 @@ def setup_db():
     # Set up database connection
     logging.info('Trying to connect to the database')
     try:
-        db = pyodbc.connect(
-            driver='{ODBC Driver 17 for SQL Server}',
-            server=cfg.db['server'],
-            database=cfg.db['database'],
-            trusted_connection=cfg.db['trusted'],
-            uid=cfg.db['username'] if cfg.db['trusted'] != 'yes' else None,
-            pwd=cfg.db['password'] if cfg.db['trusted'] != 'yes' else None,
-            timeout=15
-        )
+        if cfg.db['trusted']:
+            db = pyodbc.connect(
+                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' + cfg.db['database'] +
+                ';Trusted_Connection=yes', timeout=15)
+        else:
+            db = pyodbc.connect(
+                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' + cfg.db['database'] +
+                ';UID=' + cfg.db['username'] + ";PWD=" + cfg.db['password'], timeout=15)
+
         global cursor
         cursor = db.cursor()
         logging.info('Successfully connected to the database')
