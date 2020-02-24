@@ -19,31 +19,43 @@ cursor = None
 
 def setup_db():
     # Set up database connection
+    logging.info('Trying to connect to the database')
     try:
         db = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' + cfg.db['database'] +
-            ';UID=' + cfg.db['username'] + ";PWD=" + cfg.db['password'], timeout=15)
+            driver='{ODBC Driver 17 for SQL Server}',
+            server=cfg.db['server'],
+            database=cfg.db['database'],
+            trusted_connection=cfg.db['trusted'],
+            uid=cfg.db['username'] if cfg.db['trusted'] != 'yes' else None,
+            pwd=cfg.db['password'] if cfg.db['trusted'] != 'yes' else None,
+            timeout=15
+        )
         global cursor
         cursor = db.cursor()
+        logging.info('Successfully connected to the database')
         return True
-    except (KeyboardInterrupt, SystemExit):
+    except (KeyboardInterrupt, SystemExit) as e:
+        logging.critical('Application interrupted, exiting: ' + repr(e))
         raise
     except Exception as e:
-        print(repr(e))
+        print('Error while trying to connect to the database: ' + repr(e))
         logging.critical(repr(e))
         return False
 
 
 def setup_rpc():
     # Set up connection to the Bitcoin RPC client
+    logging.info('Trying to connect to the Bitcoin RPC client')
     try:
         global rpc
         rpc = AuthServiceProxy("http://%s:%s@%s" % (cfg.rpc['rpcuser'], cfg.rpc['rpcpassword'], cfg.rpc['endpoint']))
+        logging.info('Successfully connected to the Bitcoin RPC client')
         return True
-    except (KeyboardInterrupt, SystemExit):
+    except (KeyboardInterrupt, SystemExit) as e:
+        logging.critical('Application interrupted, exiting: ' + repr(e))
         raise
     except Exception as e:
-        print(repr(e))
+        print('Error while trying to connect to the Bitcoin RPC client: ' + repr(e))
         logging.critical(repr(e))
         return False
 
