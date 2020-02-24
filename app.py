@@ -1,6 +1,7 @@
 import time
 import datetime
 import logging
+import atexit
 import config as cfg
 from db_access import *
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
@@ -14,33 +15,6 @@ logging.basicConfig(
 )
 
 rpc = None
-cursor = None
-
-
-def setup_db():
-    # Set up database connection
-    logging.info('Trying to connect to the database')
-    try:
-        if cfg.db['trusted']:
-            db = pyodbc.connect(
-                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' + cfg.db['database'] +
-                ';Trusted_Connection=yes', timeout=15)
-        else:
-            db = pyodbc.connect(
-                'DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' + cfg.db['database'] +
-                ';UID=' + cfg.db['username'] + ";PWD=" + cfg.db['password'], timeout=15)
-
-        global cursor
-        cursor = db.cursor()
-        logging.info('Successfully connected to the database')
-        return True
-    except (KeyboardInterrupt, SystemExit) as e:
-        logging.critical('Application interrupted, exiting: ' + repr(e))
-        raise
-    except Exception as e:
-        print('Error while trying to connect to the database: ' + repr(e))
-        logging.critical(repr(e))
-        return False
 
 
 def setup_rpc():
@@ -85,7 +59,7 @@ def execute():
                     # Choose the next available block
                     latest_tx_output = get_latest_tx_output()
                     if latest_tx_output is not None:  # Choose the next block after the last tx entry
-                        active_block_hash = rpc.getblock(latest_tx_output.Blockhash)['nextblockhash']
+                        active_block_hash = rpc.getblock(latest_tx_output[3])['nextblockhash']
                     else:  # Set the next block to the genesis block
                         active_block_hash = rpc.getblockhash(0)
                         block_timestamp = rpc.getblock(active_block_hash)['time']
@@ -121,6 +95,8 @@ def execute():
 
 
 def main():
+    atexit.register(exit_handler)
+
     rpc_loaded = False
     db_loaded = False
 
@@ -135,6 +111,11 @@ def main():
             time.sleep(10)
 
     execute()
+
+
+def exit_handler():
+    if db is not None:
+        db.close()
 
 
 if __name__ == '__main__':
