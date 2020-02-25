@@ -11,7 +11,7 @@ logging.basicConfig(
     filemode='w',
     format="%(asctime)s - %(process)d - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    level=logging.DEBUG
+    level=logging.INFO
 )
 
 rpc = None
@@ -47,12 +47,16 @@ def execute():
     while True:
         try:
             if first_iteration:
+                logging.info('Application first started, retrieving last active day of analysis')
                 last_active_day = get_latest_active_day()
                 current_day = last_active_day
                 if last_active_day is not None:
+                    logging.info('The last active day of analysis was' + last_active_day.strftime('%Y-%m-%d'))
+                    logging.info('Deleting data beyond the last day of analysis')
                     delete_data_after_date(last_active_day, 'FrequencyAnalysis')
                     delete_data_after_date(last_active_day, 'SizeAnalysis')
                     delete_data_after_date(last_active_day, 'ProtocolAnalysis')
+                    delete_tx_outputs_after_date(last_active_day)
                 first_iteration = False
             else:
                 if active_block_hash == "" or None:
@@ -60,10 +64,12 @@ def execute():
                     latest_tx_output = get_latest_tx_output()
                     if latest_tx_output is not None:  # Choose the next block after the last tx entry
                         active_block_hash = rpc.getblock(latest_tx_output[3])['nextblockhash']
+                        logging.info('Set the next block to first block after where the program last stopped: ' + active_block_hash)
                     else:  # Set the next block to the genesis block
                         active_block_hash = rpc.getblockhash(0)
                         block_timestamp = rpc.getblock(active_block_hash)['time']
                         current_day = datetime.date.fromtimestamp(block_timestamp)
+                        logging.info('Set the next block to the genesis block, as there is no previous transaction outputs available')
 
                 block = rpc.getblock(active_block_hash)
                 for tx_hash in block['tx']:

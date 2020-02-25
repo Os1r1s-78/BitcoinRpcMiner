@@ -1,4 +1,6 @@
 import psycopg2
+import time
+import math
 from app import cfg
 from app import logging
 
@@ -17,6 +19,7 @@ def setup_db():
             password=cfg.db['password'],
             port=cfg.db['port']
         )
+        db.autocommit = True
         cursor = db.cursor()
         logging.info('Successfully connected to the database')
         return True
@@ -66,3 +69,7 @@ def get_latest_tx_output():
 
 def delete_data_after_date(date, table):
     cursor.execute('DELETE FROM ' + table + ' WHERE DataDay >= \'' + date.strftime('%Y-%m-%d') + '\'')
+
+
+def delete_tx_outputs_after_date(date):
+    cursor.execute('DELETE FROM transactionoutputs WHERE blocktime >= ' + str(math.floor(time.mktime(date.timetuple()))))
