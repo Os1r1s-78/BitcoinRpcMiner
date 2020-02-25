@@ -14,6 +14,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
     level=logging.INFO
 )
+logging.getLogger().addHandler(logging.StreamHandler())
 
 rpc = None
 
@@ -52,7 +53,7 @@ def execute():
                 last_active_day = get_latest_active_day()
                 if last_active_day is not None:
                     current_day = last_active_day
-                    logging.info('The last active day of analysis was' + last_active_day.strftime('%Y-%m-%d'))
+                    logging.info('The last active day of analysis was ' + last_active_day.strftime('%Y-%m-%d'))
                     logging.info('Deleting data beyond the last day of analysis')
                     delete_data_after_date(last_active_day, 'FrequencyAnalysis')
                     delete_data_after_date(last_active_day, 'SizeAnalysis')
@@ -89,20 +90,35 @@ def execute():
                     tx = rpc.getrawtransaction(tx_hash, 1)
                     logging.info('Processing outputs of transaction ' + tx['txid'] + ' in block ' + str(block['height']))
                     for tx_out in tx['vout']:
-                        current_outputs.append(
-                            TransactionOutput(tx['txid'], tx['blocktime'], tx['blockhash'], tx_out['value'],
-                                              tx_out['scriptPubKey']['type'], tx_out['scriptPubKey']['asm'],
-                                              tx_out['scriptPubKey']['hex'], None, None))
-                        current_freq_analysis.p2pk += 1
-                        current_size_analysis.avgsize += 20
-                        current_size_analysis.outputs += 1
-                        current_prot_analysis.unknownprotocol += 1
+                        script_type = tx_out['scriptPubKey']['type']
+                        script = tx_out['scriptPubKey']['asm'].split(' ')
+
+                        if script_type == 'nulldata' or script[0] == 'OP_RETURN':
+                            current_outputs.append(
+                                TransactionOutput(tx['txid'], tx['blocktime'], tx['blockhash'], tx_out['value'],
+                                                  tx_out['scriptPubKey']['type'], tx_out['scriptPubKey']['asm'],
+                                                  tx_out['scriptPubKey']['hex'], None, None))  # todo: implement protocol and file header
+
+                            current_freq_analysis.nulldata += 1
+                            current_size_analysis.avgsize += len(tx_out['scriptPubKey']['hex']) / 2
+                            current_size_analysis.outputs += 1
+                        else:
+                            if script_type == 'pubkey' or (len(script) == 2 and script[1] == 'OP_CHECKSIG'):
+                                current_freq_analysis.p2pk += 1
+                            elif script_type == 'pubkeyhash' or (len(script) == 5 and script[0] == 'OP_DUP' and script[1] == 'OP_HASH160' and script[3] == 'OP_EQUALVERIFY' and script[4] == 'OP_CHECKSIG'):
+                                current_freq_analysis.p2pkh += 1
+                            elif script_type == 'multisig' or (script[len(script) - 1] == 'OP_CHECKMULTISIG'):
+                                current_freq_analysis.p2ms += 1
+                            elif script_type == 'scripthash' or (len(script) == 3 and script[0] == 'OP_HASH160' and script[2] == 'OP_EQUAL'):
+                                current_freq_analysis.p2sh += 1
+                            else:
+                                current_freq_analysis.unknowntype += 1
 
                 # Check whether the next block is still in the same day
                 next_block = rpc.getblock(block['nextblockhash'])
                 if next_block['time'] < time.mktime((current_day + datetime.timedelta(days=1)).timetuple()):
                     active_block_hash = next_block['hash']
-                    logging.info('The next block is still in the same day. Continuing with block ' + str(next_block['height']))
+                    logging.info('The next block is still in the same day. Continuing with block ' + str(next_block['height']) + ' with ' + str(len(next_block['tx'])) + ' transactions')
                 else:
                     logging.info('Writing outputs and analysis to the database of day ' + current_day.strftime('%Y-%m-%d'))
 
