@@ -104,9 +104,9 @@ def insert_size_analysis(analysis):
 
 def insert_file_analysis(analysis):
     cursor.execute(
-        'INSERT INTO fileanalysis (id, dataday, fileheader) '
-        'VALUES (default, \'{0}\', \'{1}\')'.format(
-            analysis.dataday, analysis.fileheader)
+        'INSERT INTO fileanalysis (id, dataday, jpg, png) '
+        'VALUES (default, \'{0}\', {1}, {2})'.format(
+            analysis.dataday, analysis.jpg, analysis.png)
     )
 
 

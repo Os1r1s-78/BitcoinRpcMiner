@@ -30,3 +30,11 @@ class Protocols(Enum):
     stampery = ['5331', '5332', '5333', '5334', '5335']
     universityofnicosia = ['554e6963444320']
     veriblock = ['50000']
+
+
+def determine_protocol(script_hex):
+    for protocol in Protocols:
+        for identifier in protocol.value:
+            if script_hex.startswith(identifier):
+                return protocol.name
+    return ''

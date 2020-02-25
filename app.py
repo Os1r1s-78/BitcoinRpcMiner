@@ -6,6 +6,8 @@ import atexit
 import config as cfg
 from db_access import *
 from dbmodels import *
+from protocols import *
+from fileheaders import *
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 
 logging.basicConfig(
@@ -96,25 +98,36 @@ def execute():
                     logging.info('Processing outputs of transaction ' + tx['txid'] + ' in block ' + str(block['height']))
                     for tx_out in tx['vout']:
                         script_type = tx_out['scriptPubKey']['type']
-                        script = tx_out['scriptPubKey']['asm'].split(' ')
+                        script_asm = tx_out['scriptPubKey']['asm'].split(' ')
+                        script_hex = tx_out['scriptPubKey']['hex']
 
-                        if script_type == 'nulldata' or script[0] == 'OP_RETURN':
+                        protocol = determine_protocol(script_hex)
+                        file_header = determine_file(script_hex)
+
+                        if script_type == 'nulldata' or script_asm[0] == 'OP_RETURN':
+                            # Weird way to access attributes by their string names
+                            if protocol is not None and protocol:
+                                setattr(current_prot_analysis, protocol, getattr(current_prot_analysis, protocol) + 1)
+                            if file_header is not None and file_header:
+                                setattr(current_file_analysis, file_header,
+                                        getattr(current_file_analysis, file_header) + 1)
+
                             current_outputs.append(
                                 TransactionOutput(tx['txid'], tx['blocktime'], tx['blockhash'], tx_out['value'],
                                                   tx_out['scriptPubKey']['type'], tx_out['scriptPubKey']['asm'],
-                                                  tx_out['scriptPubKey']['hex'], None, None))  # todo: implement protocol and file header
+                                                  tx_out['scriptPubKey']['hex'], protocol, file_header))
 
                             current_freq_analysis.nulldata += 1
                             current_size_analysis.avgsize += len(tx_out['scriptPubKey']['hex']) / 2  # Each byte is 2 characters long in ASCII
                             current_size_analysis.outputs += 1
                         else:
-                            if script_type == 'pubkey' or (len(script) == 2 and script[1] == 'OP_CHECKSIG'):
+                            if script_type == 'pubkey' or (len(script_asm) == 2 and script_asm[1] == 'OP_CHECKSIG'):
                                 current_freq_analysis.p2pk += 1
-                            elif script_type == 'pubkeyhash' or (len(script) == 5 and script[0] == 'OP_DUP' and script[1] == 'OP_HASH160' and script[3] == 'OP_EQUALVERIFY' and script[4] == 'OP_CHECKSIG'):
+                            elif script_type == 'pubkeyhash' or (len(script_asm) == 5 and script_asm[0] == 'OP_DUP' and script_asm[1] == 'OP_HASH160' and script_asm[3] == 'OP_EQUALVERIFY' and script_asm[4] == 'OP_CHECKSIG'):
                                 current_freq_analysis.p2pkh += 1
-                            elif script_type == 'multisig' or (script[len(script) - 1] == 'OP_CHECKMULTISIG'):
+                            elif script_type == 'multisig' or (script_asm[len(script_asm) - 1] == 'OP_CHECKMULTISIG'):
                                 current_freq_analysis.p2ms += 1
-                            elif script_type == 'scripthash' or (len(script) == 3 and script[0] == 'OP_HASH160' and script[2] == 'OP_EQUAL'):
+                            elif script_type == 'scripthash' or (len(script_asm) == 3 and script_asm[0] == 'OP_HASH160' and script_asm[2] == 'OP_EQUAL'):
                                 current_freq_analysis.p2sh += 1
                             else:
                                 current_freq_analysis.unknowntype += 1

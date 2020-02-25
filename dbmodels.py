@@ -51,7 +51,8 @@ class SizeAnalysis:
 class FileAnalysis:
     id = 0
     dataday = None
-    fileheader = ''
+    jpg = 0
+    png = 0
 
 
 class ProtocolAnalysis:
