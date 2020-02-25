@@ -36,6 +36,7 @@ def setup_db():
 def get_latest_active_day():
     freq = __get_latest_analysis('FrequencyAnalysis')
     size = __get_latest_analysis('SizeAnalysis')
+    file = __get_latest_analysis('FileAnalysis')
     prot = __get_latest_analysis('ProtocolAnalysis')
 
     dates = []
@@ -46,6 +47,11 @@ def get_latest_active_day():
 
     if size is not None:
         dates.append(size)
+    else:
+        return None
+
+    if file is not None:
+        dates.append(file)
     else:
         return None
 
@@ -96,6 +102,14 @@ def insert_size_analysis(analysis):
     )
 
 
+def insert_file_analysis(analysis):
+    cursor.execute(
+        'INSERT INTO fileanalysis (id, dataday, fileheader) '
+        'VALUES (default, \'{0}\', \'{1}\')'.format(
+            analysis.dataday, analysis.fileheader)
+    )
+
+
 def insert_prot_analysis(analysis):
     cursor.execute(
         'INSERT INTO protocolanalysis (id, dataday, ascribe, bitproof, blockaibindedpixsy, blocksign, blockstoreblockstack, '
@@ -113,7 +127,7 @@ def insert_prot_analysis(analysis):
 
 
 def delete_all_data():
-    cursor.execute('DELETE FROM transactionoutputs; DELETE FROM frequencyanalysis; DELETE FROM sizeanalysis; DELETE FROM protocolanalysis;')
+    cursor.execute('DELETE FROM transactionoutputs; DELETE FROM frequencyanalysis; DELETE FROM sizeanalysis; DELETE FROM fileanalysis; DELETE FROM protocolanalysis;')
 
 
 def delete_data_after_date(date, table):

@@ -48,6 +48,12 @@ class SizeAnalysis:
     outputs = 0
 
 
+class FileAnalysis:
+    id = 0
+    dataday = None
+    fileheader = ''
+
+
 class ProtocolAnalysis:
     id = 0
     dataday = None

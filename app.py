@@ -1,4 +1,5 @@
 import time
+import calendar
 import datetime
 import logging
 import atexit
@@ -44,7 +45,10 @@ def execute():
     current_outputs = []
     current_freq_analysis = FrequencyAnalysis()
     current_size_analysis = SizeAnalysis()
+    current_file_analysis = FileAnalysis()
     current_prot_analysis = ProtocolAnalysis()
+
+    last_active_day = None
 
     while True:
         try:
@@ -57,6 +61,7 @@ def execute():
                     logging.info('Deleting data beyond the last day of analysis')
                     delete_data_after_date(last_active_day, 'FrequencyAnalysis')
                     delete_data_after_date(last_active_day, 'SizeAnalysis')
+                    delete_data_after_date(last_active_day, 'FileAnalysis')
                     delete_data_after_date(last_active_day, 'ProtocolAnalysis')
                     delete_tx_outputs_after_date(last_active_day)
                 else:
@@ -65,14 +70,14 @@ def execute():
                 first_iteration = False
             else:
                 if active_block_hash == "" or None:
-                    # Choose the next available block
-                    latest_tx_output = get_latest_tx_output()
-                    if latest_tx_output is not None:  # Choose the next block after the last tx entry
-                        active_block_hash = rpc.getblock(latest_tx_output[3])['nextblockhash']
-                        current_block_time = rpc.getblock(active_block_hash)['time']
-                        current_day = datetime.datetime.utcfromtimestamp(current_block_time).date()
-                        logging.info('Set the next block to first block after where the program last stopped: ' + active_block_hash)
-                    else:  # Set the next block to the genesis block
+                    # Find the block to begin with, based on the last active day of analysis (using binary search)
+                    if last_active_day is not None:
+                        last_active_day_timestamp = calendar.timegm(last_active_day.timetuple())
+                        active_block_hash = binary_search_for_next_block(last_active_day_timestamp)
+                        active_block = rpc.getblock(active_block_hash)
+                        current_day = datetime.datetime.utcfromtimestamp(active_block['time']).date()
+                        logging.info('Set the next block to first block after where the program last stopped: ' + current_day.strftime('%Y-%m-%d') + ', Hash: ' + active_block_hash)
+                    else:
                         active_block_hash = rpc.getblockhash(0)
                         block_timestamp = rpc.getblock(active_block_hash)['time']
                         current_day = datetime.datetime.utcfromtimestamp(block_timestamp).date()
@@ -100,7 +105,7 @@ def execute():
                                                   tx_out['scriptPubKey']['hex'], None, None))  # todo: implement protocol and file header
 
                             current_freq_analysis.nulldata += 1
-                            current_size_analysis.avgsize += len(tx_out['scriptPubKey']['hex']) / 2
+                            current_size_analysis.avgsize += len(tx_out['scriptPubKey']['hex']) / 2  # Each byte is 2 characters long in ASCII
                             current_size_analysis.outputs += 1
                         else:
                             if script_type == 'pubkey' or (len(script) == 2 and script[1] == 'OP_CHECKSIG'):
@@ -116,7 +121,7 @@ def execute():
 
                 # Check whether the next block is still in the same day
                 next_block = rpc.getblock(block['nextblockhash'])
-                if next_block['time'] < time.mktime((current_day + datetime.timedelta(days=1)).timetuple()):
+                if next_block['time'] < calendar.timegm((current_day + datetime.timedelta(days=1)).timetuple()):
                     active_block_hash = next_block['hash']
                     logging.info('The next block is still in the same day. Continuing with block ' + str(next_block['height']) + ' with ' + str(len(next_block['tx'])) + ' transactions')
                 else:
@@ -125,6 +130,7 @@ def execute():
                     # Adjust the data day variables
                     current_freq_analysis.dataday = current_day
                     current_size_analysis.dataday = current_day
+                    current_file_analysis.dataday = current_day
                     current_prot_analysis.dataday = current_day
 
                     # Next block is the next day
@@ -135,11 +141,13 @@ def execute():
                     insert_tx_outputs(current_outputs)
                     insert_freq_analysis(current_freq_analysis)
                     insert_size_analysis(current_size_analysis)
+                    insert_file_analysis(current_file_analysis)
                     insert_prot_analysis(current_prot_analysis)
 
                     current_outputs.clear()
                     current_freq_analysis = FrequencyAnalysis()
                     current_size_analysis = SizeAnalysis()
+                    current_file_analysis = FileAnalysis()
                     current_prot_analysis = ProtocolAnalysis()
         except JSONRPCException as e:
             print(repr(e))
@@ -149,6 +157,21 @@ def execute():
         except Exception as e:
             print(repr(e))
             logging.critical(repr(e))
+
+
+# Find the first block after the specified timestamp using binary search
+def binary_search_for_next_block(last_active_day):
+    left = 0
+    right = rpc.getblockcount()
+
+    while (right - left) > 2:
+        middle = (left + right) // 2
+        if last_active_day < rpc.getblock(rpc.getblockhash(middle))['time']:
+            right = middle
+        else:
+            left = middle
+
+    return rpc.getblockhash(right)
 
 
 def main():
