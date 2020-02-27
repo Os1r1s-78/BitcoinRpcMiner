@@ -5,9 +5,11 @@
       <w>blockhash</w>
       <w>blocktime</w>
       <w>dataday</w>
+      <w>emptytx</w>
       <w>nextblockhash</w>
       <w>prot</w>
       <w>txhash</w>
+      <w>unknownprotocol</w>
     </words>
   </dictionary>
 </component>
