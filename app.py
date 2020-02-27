@@ -133,6 +133,11 @@ def execute():
                                 current_freq_analysis.unknowntype += 1
 
                 # Check whether the next block is still in the same day
+                while "nextblockhash" not in block:
+                    logging.info('There is currently no next block available, waiting 60 seconds before checking again')
+                    time.sleep(60)
+                    block = rpc.getblock(active_block_hash)
+
                 next_block = rpc.getblock(block['nextblockhash'])
                 if next_block['time'] < calendar.timegm((current_day + datetime.timedelta(days=1)).timetuple()):
                     active_block_hash = next_block['hash']
