@@ -49,10 +49,44 @@ class SizeAnalysis:
 
 
 class FileAnalysis:
-    id = 0
-    dataday = None
+    avi_wav = 0
+    # bmp = 0
+    bin_file = 0
+    bpg = 0
+    bz2 = 0
+    crx = 0
+    dat = 0
+    deb = 0
+    doc_xls_ppt = 0
+    docx_xlsx_pptx = 0
+    dmg = 0
+    exe_dll = 0
+    flac = 0
+    flv = 0
+    gif = 0
+    gz = 0
+    ico = 0
+    iso = 0
     jpg = 0
+    lz = 0
+    mkv = 0
+    mp3 = 0
+    mp4 = 0
+    ogg = 0
+    pdf = 0
     png = 0
+    psd = 0
+    rar = 0
+    rtf = 0
+    seven_z = 0
+    sqlite = 0
+    tar = 0
+    threegp = 0
+    tiff = 0
+    webp = 0
+    wmv = 0
+    xml = 0
+    zip = 0
 
 
 class ProtocolAnalysis:

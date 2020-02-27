@@ -104,9 +104,18 @@ def insert_size_analysis(analysis):
 
 def insert_file_analysis(analysis):
     cursor.execute(
-        'INSERT INTO fileanalysis (id, dataday, jpg, png) '
-        'VALUES (default, \'{0}\', {1}, {2})'.format(
-            analysis.dataday, analysis.jpg, analysis.png)
+        'INSERT INTO fileanalysis (id, dataday, avi_wav, bin_file, bpg, bz2, crx, dat, deb, doc_xls_ppt, docx_xlsx_pptx, '
+        'dmg, exe_dll, flac, flv, gif, gz, ico, iso, jpg, lz, mkv, mp3, mp4, ogg, pdf, png, psd, rar, rtf, seven_z, '
+        'sqlite, tar, threegp, tiff, webp, wmv, xml, zip) '
+        'VALUES (default, \'{0}\', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, '
+        '{16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29}, {30}, {31}, {32}, {33}, '
+        '{34}, {35}, {36}, {37})'.format(
+            analysis.dataday, analysis.avi_wav, analysis.bin_file, analysis.bpg, analysis.bz2, analysis.crx, analysis.dat,
+            analysis.deb, analysis.doc_xls_ppt, analysis.docx_xlsx_pptx, analysis.dmg, analysis.exe_dll, analysis.flac,
+            analysis.flv, analysis.gif, analysis.gz, analysis.ico, analysis.iso, analysis.jpg, analysis.lz, analysis.mkv,
+            analysis.mp3, analysis.mp4, analysis.ogg, analysis.pdf, analysis.png, analysis.psd, analysis.rar, analysis.rtf,
+            analysis.seven_z, analysis.sqlite, analysis.tar, analysis.threegp, analysis.tiff, analysis.webp, analysis.wmv,
+            analysis.xml, analysis.zip)
     )
 
 

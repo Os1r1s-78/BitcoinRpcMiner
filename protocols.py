@@ -35,6 +35,6 @@ class Protocols(Enum):
 def determine_protocol(script_hex):
     for protocol in Protocols:
         for identifier in protocol.value:
-            if script_hex.startswith(identifier):
+            if len(script_hex) > 4 and script_hex[4:].startswith(identifier):
                 return protocol.name
     return ''
