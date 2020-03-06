@@ -170,19 +170,19 @@ def execute():
                     current_prot_analysis.reset()
         except JSONRPCException as e:
             logging.critical('JSONRPCException: ' + repr(e))
-            log_error(e)
+            log_error(e, 'JSONRPCException')
             os.system('python app.py')
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as e:
             logging.critical('Exception: ' + repr(e))
-            log_error(e)
+            log_error(e, 'Exception')
             os.system('python app.py')
 
 
-def log_error(e):
+def log_error(e, e_type):
     with open('log/errors.log', 'a') as error_file:
-        error_file.write(str(datetime.datetime.now()) + ' - ' + repr(e) + '\n')
+        error_file.write(str(datetime.datetime.now()) + ' - ' + e_type + ' - ' + repr(e) + '\n')
 
 
 # Find the first block after the specified timestamp using binary search
