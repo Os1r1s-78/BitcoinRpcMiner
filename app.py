@@ -171,13 +171,13 @@ def execute():
         except JSONRPCException as e:
             logging.critical('JSONRPCException: ' + repr(e))
             log_error(e, 'JSONRPCException')
-            os.system('python app.py')
+            main()
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as e:
             logging.critical('Exception: ' + repr(e))
             log_error(e, 'Exception')
-            os.system('python app.py')
+            main()
 
 
 def log_error(e, e_type):
