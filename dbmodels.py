@@ -31,6 +31,19 @@ class TransactionOutput:
 
 
 class FrequencyAnalysis:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.id = 0
+        self.dataday = None
+        self.nulldata = 0
+        self.p2pk = 0
+        self.p2pkh = 0
+        self.p2ms = 0
+        self.p2sh = 0
+        self.unknowntype = 0
+
     id = 0
     dataday = None
     nulldata = 0
@@ -42,6 +55,15 @@ class FrequencyAnalysis:
 
 
 class SizeAnalysis:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.id = 0
+        self.dataday = None
+        self.avgsize = 0
+        self.outputs = 0
+
     id = 0
     dataday = None
     avgsize = 0
@@ -49,8 +71,49 @@ class SizeAnalysis:
 
 
 class FileAnalysis:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.avi_wav = 0
+        self.bin_file = 0
+        self.bpg = 0
+        self.bz2 = 0
+        self.crx = 0
+        self.dat = 0
+        self.deb = 0
+        self.doc_xls_ppt = 0
+        self.docx_xlsx_pptx = 0
+        self.dmg = 0
+        self.exe_dll = 0
+        self.flac = 0
+        self.flv = 0
+        self.gif = 0
+        self.gz = 0
+        self.ico = 0
+        self.iso = 0
+        self.jpg = 0
+        self.lz = 0
+        self.mkv = 0
+        self.mp3 = 0
+        self.mp4 = 0
+        self.ogg = 0
+        self.pdf = 0
+        self.png = 0
+        self.psd = 0
+        self.rar = 0
+        self.rtf = 0
+        self.seven_z = 0
+        self.sqlite = 0
+        self.tar = 0
+        self.threegp = 0
+        self.tiff = 0
+        self.webp = 0
+        self.wmv = 0
+        self.xml = 0
+        self.zip = 0
+
     avi_wav = 0
-    # bmp = 0
     bin_file = 0
     bpg = 0
     bz2 = 0
@@ -90,6 +153,43 @@ class FileAnalysis:
 
 
 class ProtocolAnalysis:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.id = 0
+        self.dataday = None
+        self.ascribe = 0
+        self.bitproof = 0
+        self.blockaibindedpixsy = 0
+        self.blocksign = 0
+        self.blockstoreblockstack = 0
+        self.chainpoint = 0
+        self.coinspark = 0
+        self.colu = 0
+        self.counterparty = 0
+        self.counterpartytest = 0
+        self.cryptocopyright = 0
+        self.diploma = 0
+        self.emptytx = 0
+        self.eternitywall = 0
+        self.factom = 0
+        self.lapreuve = 0
+        self.monegraph = 0
+        self.omni = 0
+        self.openassets = 0
+        self.openchain = 0
+        self.originalmy = 0
+        self.proofofexistence = 0
+        self.provebit = 0
+        self.remembr = 0
+        self.smartbit = 0
+        self.stampd = 0
+        self.stampery = 0
+        self.universityofnicosia = 0
+        self.unknownprotocol = 0
+        self.veriblock = 0
+
     id = 0
     dataday = None
     ascribe = 0

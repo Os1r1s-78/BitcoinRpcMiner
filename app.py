@@ -34,8 +34,7 @@ def setup_rpc():
         logging.critical('Application interrupted, exiting: ' + repr(e))
         raise
     except Exception as e:
-        print('Error while trying to connect to the Bitcoin RPC client: ' + repr(e))
-        logging.critical(repr(e))
+        logging.critical('Error while trying to connect to the Bitcoin RPC client: ' + repr(e))
         return False
 
 
@@ -164,18 +163,16 @@ def execute():
                     insert_prot_analysis(current_prot_analysis)
 
                     current_outputs.clear()
-                    current_freq_analysis = FrequencyAnalysis()
-                    current_size_analysis = SizeAnalysis()
-                    current_file_analysis = FileAnalysis()
-                    current_prot_analysis = ProtocolAnalysis()
+                    current_freq_analysis.reset()
+                    current_size_analysis.reset()
+                    current_file_analysis.reset()
+                    current_prot_analysis.reset()
         except JSONRPCException as e:
-            print(repr(e))
-            logging.critical(repr(e))
+            logging.critical('JSONRPCException: ' + repr(e))
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception as e:
-            print(repr(e))
-            logging.critical(repr(e))
+            logging.critical('Exception: ' + repr(e))
 
 
 # Find the first block after the specified timestamp using binary search

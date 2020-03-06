@@ -1,15 +1,18 @@
 <component name="ProjectDictionaryState">
   <dictionary name="johan">
     <words>
+      <w>avgsize</w>
       <w>blockchain</w>
       <w>blockhash</w>
       <w>blocktime</w>
       <w>dataday</w>
       <w>emptytx</w>
       <w>nextblockhash</w>
+      <w>nulldata</w>
       <w>prot</w>
       <w>txhash</w>
       <w>unknownprotocol</w>
+      <w>unknowntype</w>
     </words>
   </dictionary>
 </component>

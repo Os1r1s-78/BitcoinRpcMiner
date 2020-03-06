@@ -3,7 +3,6 @@ from enum import Enum
 
 class FileHeaders(Enum):
     avi_wav = ['52494646']
-    # bmp = ['424d']
     bin_file = ['424c4932323351']
     bpg = ['425047fb']
     bz2 = ['425a68']
@@ -18,7 +17,6 @@ class FileHeaders(Enum):
     flv = ['464c5601']
     gif = ['474946383761', '474946383961']
     gz = ['1f8b0808']
-    ico = ['00000100']
     iso = ['4344303031']
     jpg = ['ffd8ffdb', 'ffd8ffe000104a4649460001', 'ffd8ffee', 'ffd8ffe1', 'ffd8ffe0', 'ffd8ffe8']
     lz = ['4c5a4950']
