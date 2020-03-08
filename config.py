@@ -3,3 +3,11 @@ rpc = {
     'rpcuser': '',
     'rpcpassword': ''
 }
+
+db = {
+    'server': 'localhost',
+    'database': 'bitcoin',
+    'username': 'postgres',
+    'password': '',
+    'port': '5432'
+}
