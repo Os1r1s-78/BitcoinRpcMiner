@@ -98,8 +98,9 @@ def execute():
                     try:
                         tx = rpc.getrawtransaction(tx_hash, 1)
                     except JSONRPCException as e:
-                        log_error("Error getting transaction " + tx_hash, "JSONRPCException")
-                        raise e
+                        log_error("Error getting transaction " + tx_hash + " in block " + active_block_hash, "JSONRPCException")
+                        logging.error('Error getting transaction ' + tx_hash + ' in block ' + active_block_hash)
+                        continue
 
                     logging.info('Processing outputs of transaction ' + tx['txid'] + ' in block ' + str(block['height']))
                     for tx_out in tx['vout']:
