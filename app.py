@@ -94,7 +94,13 @@ def execute():
                         continue
 
                     # Process transaction
-                    tx = rpc.getrawtransaction(tx_hash, 1)
+                    tx = None
+                    try:
+                        tx = rpc.getrawtransaction(tx_hash, 1)
+                    except JSONRPCException as e:
+                        log_error("Error getting transaction " + tx_hash, "JSONRPCException")
+                        raise e
+
                     logging.info('Processing outputs of transaction ' + tx['txid'] + ' in block ' + str(block['height']))
                     for tx_out in tx['vout']:
                         script_type = tx_out['scriptPubKey']['type']
