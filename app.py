@@ -28,7 +28,7 @@ def setup_rpc():
     logging.info('Trying to connect to the Bitcoin RPC client')
     try:
         global rpc
-        rpc = AuthServiceProxy("http://%s:%s@%s" % (cfg.rpc['rpcuser'], cfg.rpc['rpcpassword'], cfg.rpc['endpoint']))
+        rpc = AuthServiceProxy("http://%s:%s@%s" % (cfg.rpc['rpcuser'], cfg.rpc['rpcpassword'], cfg.rpc['endpoint']), timeout=120)
         logging.info('Successfully connected to the Bitcoin RPC client')
         return True
     except (KeyboardInterrupt, SystemExit) as e:
