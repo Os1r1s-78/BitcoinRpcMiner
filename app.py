@@ -141,8 +141,8 @@ def execute():
 
                 # Check whether there is a next block
                 while "nextblockhash" not in block:
-                    logging.info('There is currently no next block available, waiting 60 seconds before checking again')
-                    time.sleep(60)
+                    logging.info('There is currently no next block available, waiting 1 second before checking again')
+                    time.sleep(1)
                     block = rpc.getblock(active_block_hash)
 
                 # Check whether the next block is still in the same day
