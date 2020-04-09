@@ -1,9 +1,11 @@
-import psycopg2
-import psycopg2.extras
+# import psycopg2
+# import psycopg2.extras
 import time
 import math
 from app import cfg
 from app import logging
+
+import pyodbc
 
 db, cursor = None, None
 
@@ -13,14 +15,10 @@ def setup_db():
     logging.info('Trying to connect to the database')
     try:
         global db, cursor
-        db = psycopg2.connect(
-            host=cfg.db['server'],
-            database=cfg.db['database'],
-            user=cfg.db['username'],
-            password=cfg.db['password'],
-            port=cfg.db['port']
-        )
-        db.autocommit = True
+        db = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' +
+                            cfg.db['database'] + ';UID=' + cfg.db['username'] + ';PWD=' + cfg.db['password']
+                            + ';Trusted_Connection=Yes', autocommit=True)
+        db.setencoding(encoding='utf-8')
         cursor = db.cursor()
         logging.info('Successfully connected to the database')
         return True
@@ -82,31 +80,32 @@ def get_latest_tx_output():
 
 
 def insert_tx_outputs(outputs):
-    psycopg2.extras.execute_values(cursor, 'INSERT INTO transactionoutputs (id, txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader) VALUES %s', outputs)
+    if outputs is not None and len(outputs) > 0:
+        cursor.executemany('INSERT INTO transactionoutputs (txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', outputs)
 
 
 def insert_freq_analysis(analysis):
     cursor.execute(
-        'INSERT INTO frequencyanalysis (id, dataday, nulldata, p2pk, p2pkh, p2ms, p2sh, unknowntype) '
-        'VALUES (default, \'{0}\', {1}, {2}, {3}, {4}, {5}, {6})'.format(
+        'INSERT INTO frequencyanalysis (dataday, nulldata, p2pk, p2pkh, p2ms, p2sh, unknowntype) '
+        'VALUES (\'{0}\', {1}, {2}, {3}, {4}, {5}, {6})'.format(
             analysis.dataday, analysis.nulldata, analysis.p2pk, analysis.p2pkh, analysis.p2ms, analysis.p2sh, analysis.unknowntype)
     )
 
 
 def insert_size_analysis(analysis):
     cursor.execute(
-        'INSERT INTO sizeanalysis (id, dataday, avgsize, outputs) '
-        'VALUES (default, \'{0}\', {1}, {2})'.format(
+        'INSERT INTO sizeanalysis (dataday, avgsize, outputs) '
+        'VALUES (\'{0}\', {1}, {2})'.format(
             analysis.dataday, analysis.avgsize, analysis.outputs)
     )
 
 
 def insert_file_analysis(analysis):
     cursor.execute(
-        'INSERT INTO fileanalysis (id, dataday, avi_wav, bin_file, bpg, bz2, crx, dat, deb, doc_xls_ppt, docx_xlsx_pptx, '
+        'INSERT INTO fileanalysis (dataday, avi_wav, bin_file, bpg, bz2, crx, dat, deb, doc_xls_ppt, docx_xlsx_pptx, '
         'dmg, exe_dll, flac, flv, gif, gz, iso, jpg, lz, mkv, mp3, mp4, ogg, pdf, png, psd, rar, rtf, seven_z, '
         'sqlite, tar, threegp, tiff, webp, wmv, xml, zip) '
-        'VALUES (default, \'{0}\', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, '
+        'VALUES (\'{0}\', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, '
         '{16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29}, {30}, {31}, {32}, {33}, '
         '{34}, {35}, {36})'.format(
             analysis.dataday, analysis.avi_wav, analysis.bin_file, analysis.bpg, analysis.bz2, analysis.crx, analysis.dat,
@@ -120,11 +119,11 @@ def insert_file_analysis(analysis):
 
 def insert_prot_analysis(analysis):
     cursor.execute(
-        'INSERT INTO protocolanalysis (id, dataday, ascribe, bitproof, blockaibindedpixsy, blocksign, blockstoreblockstack, '
+        'INSERT INTO protocolanalysis (dataday, ascribe, bitproof, blockaibindedpixsy, blocksign, blockstoreblockstack, '
         'chainpoint, coinspark, colu, counterparty, counterpartytest, cryptocopyright, diploma, emptytx, eternitywall, '
         'factom, lapreuve, monegraph, omni, openassets, openchain, originalmy, proofofexistence, provebit, remembr, '
         'smartbit, stampd, stampery, universityofnicosia, unknownprotocol, veriblock) '
-        'VALUES (default, \'{0}\', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, '
+        'VALUES (\'{0}\', {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, '
         '{16}, {17}, {18}, {19}, {20}, {21}, {22}, {23}, {24}, {25}, {26}, {27}, {28}, {29}, {30})'.format(
             analysis.dataday, analysis.ascribe, analysis.bitproof, analysis.blockaibindedpixsy, analysis.blocksign, analysis.blockstoreblockstack,
             analysis.chainpoint, analysis.coinspark, analysis.colu, analysis.counterparty, analysis.counterpartytest, analysis.cryptocopyright,
