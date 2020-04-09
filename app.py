@@ -140,6 +140,10 @@ def execute():
                             else:
                                 current_freq_analysis.unknowntype += 1
 
+                logging.info('Writing outputs of block ' + active_block_hash + ' to database, then continuing with the next block')
+                insert_tx_outputs(current_outputs)
+                current_outputs.clear()
+
                 # Check whether there is a next block
                 while "nextblockhash" not in block:
                     logging.info('There is currently no next block available, waiting 1 second before checking again')
@@ -165,13 +169,13 @@ def execute():
                     current_day = current_day + datetime.timedelta(days=1)
 
                     # Commit to database
-                    insert_tx_outputs(current_outputs)
+                    # insert_tx_outputs(current_outputs)
                     insert_freq_analysis(current_freq_analysis)
                     insert_size_analysis(current_size_analysis)
                     insert_file_analysis(current_file_analysis)
                     insert_prot_analysis(current_prot_analysis)
 
-                    current_outputs.clear()
+                    # current_outputs.clear()
                     current_freq_analysis.reset()
                     current_size_analysis.reset()
                     current_file_analysis.reset()
