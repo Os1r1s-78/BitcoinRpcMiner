@@ -16,8 +16,7 @@ def setup_db():
     try:
         global db, cursor
         db = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' +
-                            cfg.db['database'] + ';UID=' + cfg.db['username'] + ';PWD=' + cfg.db['password']
-                            + ';Trusted_Connection=Yes', autocommit=True)  # Remove Trusted_Connection on Linux. This is only used on Windows
+                            cfg.db['database'] + ';UID=' + cfg.db['username'] + ';PWD=' + cfg.db['password'], autocommit=True)  # Add Trusted_Connection=Yes on Windows
         db.setencoding(encoding='utf-8')
         cursor = db.cursor()
         logging.info('Successfully connected to the database')
