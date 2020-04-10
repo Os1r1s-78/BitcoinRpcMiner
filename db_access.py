@@ -4,8 +4,8 @@ import time
 import math
 from app import cfg
 from app import logging
-
 import pyodbc
+from dbmodels import TransactionOutput
 
 db, cursor = None, None
 
@@ -20,6 +20,7 @@ def setup_db():
                             + ';Trusted_Connection=Yes', autocommit=True)  # Remove Trusted_Connection on Linux. This is only used on Windows
         db.setencoding(encoding='utf-8')
         cursor = db.cursor()
+        cursor.fast_executemany = True  # https://github.com/mkleehammer/pyodbc/wiki/Features-beyond-the-DB-API
         logging.info('Successfully connected to the database')
         return True
     except (KeyboardInterrupt, SystemExit) as e:
@@ -81,7 +82,8 @@ def get_latest_tx_output():
 
 def insert_tx_outputs(outputs):
     if outputs is not None and len(outputs) > 0:
-        cursor.executemany('INSERT INTO transactionoutputs (txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', outputs)
+        insert = TransactionOutput.convert_to_list(outputs)
+        cursor.executemany('INSERT INTO transactionoutputs (txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', insert)
 
 
 def insert_freq_analysis(analysis):

@@ -29,6 +29,13 @@ class TransactionOutput:
                 self.outhex, self.protocol, self.fileheader))
         return None
 
+    @staticmethod
+    def convert_to_list(outputs):
+        insert_this = []
+        for output in outputs:
+            insert_this.append([output.txhash, output.blocktime, output.blockhash, output.outvalue, output.outtype, output.outasm, output.outhex, output.protocol, output.fileheader])
+        return insert_this
+
 
 class FrequencyAnalysis:
     def __init__(self):
