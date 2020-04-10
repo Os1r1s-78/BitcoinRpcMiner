@@ -20,7 +20,6 @@ def setup_db():
                             + ';Trusted_Connection=Yes', autocommit=True)  # Remove Trusted_Connection on Linux. This is only used on Windows
         db.setencoding(encoding='utf-8')
         cursor = db.cursor()
-        cursor.fast_executemany = True  # https://github.com/mkleehammer/pyodbc/wiki/Features-beyond-the-DB-API
         logging.info('Successfully connected to the database')
         return True
     except (KeyboardInterrupt, SystemExit) as e:
