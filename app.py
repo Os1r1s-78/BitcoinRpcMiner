@@ -86,6 +86,7 @@ def execute():
                         logging.info('Set the next block to the genesis block, as there is no previous transaction outputs available')
 
                 block = rpc.getblock(active_block_hash)
+                logging.info('Processing transactions of block ' + active_block_hash)
                 for tx_hash in block['tx']:
                     # The genesis' blocks transaction cannot be retrieved with the Bitcoin RPC, simply skip it
                     if tx_hash == '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b':
@@ -102,7 +103,7 @@ def execute():
                         logging.error('Error getting transaction ' + tx_hash + ' in block ' + active_block_hash)
                         continue
 
-                    logging.info('Processing outputs of transaction ' + tx['txid'] + ' in block ' + str(block['height']))
+                    # logging.info('Processing outputs of transaction ' + tx['txid'] + ' in block ' + str(block['height']))
                     for tx_out in tx['vout']:
                         script_type = tx_out['scriptPubKey']['type']
                         script_asm = tx_out['scriptPubKey']['asm'].split(' ')
@@ -139,6 +140,10 @@ def execute():
                             else:
                                 current_freq_analysis.unknowntype += 1
 
+                logging.info('Writing outputs of block ' + active_block_hash + ' to database, then continuing with the next block')
+                insert_tx_outputs(current_outputs)
+                current_outputs.clear()
+
                 # Check whether there is a next block
                 while "nextblockhash" not in block:
                     logging.info('There is currently no next block available, waiting 1 second before checking again')
@@ -164,13 +169,13 @@ def execute():
                     current_day = current_day + datetime.timedelta(days=1)
 
                     # Commit to database
-                    insert_tx_outputs(current_outputs)
+                    # insert_tx_outputs(current_outputs)
                     insert_freq_analysis(current_freq_analysis)
                     insert_size_analysis(current_size_analysis)
                     insert_file_analysis(current_file_analysis)
                     insert_prot_analysis(current_prot_analysis)
 
-                    current_outputs.clear()
+                    # current_outputs.clear()
                     current_freq_analysis.reset()
                     current_size_analysis.reset()
                     current_file_analysis.reset()

@@ -10,6 +10,9 @@
       <w>nextblockhash</w>
       <w>nulldata</w>
       <w>prot</w>
+      <w>pyodbc</w>
+      <w>tablename</w>
+      <w>transactionoutputs</w>
       <w>txhash</w>
       <w>unknownprotocol</w>
       <w>unknowntype</w>
