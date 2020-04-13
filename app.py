@@ -145,8 +145,6 @@ def execute():
                             else:
                                 current_freq_analysis.unknowntype += 1
 
-                # todo: set breakpoint for timer
-
                 logging.info('Writing outputs of block ' + active_block_hash + ' to database, then continuing with the next block')
                 insert_tx_outputs(current_outputs)
                 current_outputs.clear()
@@ -156,7 +154,7 @@ def execute():
 
                 # Measure the execution time for this block and estimate the time left to catch up
                 last_block_execution_times.append(time.time() - start_block_time)
-                if len(last_block_execution_times) > 100:
+                if len(last_block_execution_times) > 1000:
                     last_block_execution_times.pop(0)
                 avg_block_execution_time = statistics.mean(last_block_execution_times)
                 total_block_height = rpc.getblockcount()
