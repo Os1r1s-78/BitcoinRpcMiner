@@ -1,5 +1,6 @@
 import os
 import time
+import statistics
 import calendar
 import datetime
 import logging
@@ -52,6 +53,8 @@ def execute():
 
     last_active_day = None
 
+    last_block_execution_times = []
+
     while True:
         try:
             if first_iteration:
@@ -71,7 +74,7 @@ def execute():
                     delete_all_data()
                 first_iteration = False
             else:
-                # todo: start timer here
+                start_block_time = time.time()
 
                 if active_block_hash == "" or None:
                     # Find the block to begin with, based on the last active day of analysis (using binary search)
@@ -151,7 +154,14 @@ def execute():
                 logging.info('Reconnect to the rpc as the connection was likely killed during the insert')
                 setup_rpc()
 
-                # todo: end timer and calculate average time and time to finish
+                # Measure the execution time for this block and estimate the time left to catch up
+                last_block_execution_times.append(time.time() - start_block_time)
+                if len(last_block_execution_times) > 100:
+                    last_block_execution_times.pop(0)
+                avg_block_execution_time = statistics.mean(last_block_execution_times)
+                total_block_height = rpc.getblockcount()
+                current_block_height = block['height']
+                logging.info('Estimated time remaining: ' + str(datetime.timedelta(seconds=avg_block_execution_time * (total_block_height - current_block_height))) + " (Average block processing time is " + str(avg_block_execution_time) + " seconds)")
 
                 # Check whether there is a next block
                 while "nextblockhash" not in block:
