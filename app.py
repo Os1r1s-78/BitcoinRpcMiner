@@ -71,6 +71,8 @@ def execute():
                     delete_all_data()
                 first_iteration = False
             else:
+                # todo: start timer here
+
                 if active_block_hash == "" or None:
                     # Find the block to begin with, based on the last active day of analysis (using binary search)
                     if last_active_day is not None:
@@ -140,9 +142,16 @@ def execute():
                             else:
                                 current_freq_analysis.unknowntype += 1
 
+                # todo: set breakpoint for timer
+
                 logging.info('Writing outputs of block ' + active_block_hash + ' to database, then continuing with the next block')
                 insert_tx_outputs(current_outputs)
                 current_outputs.clear()
+
+                logging.info('Reconnect to the rpc as the connection was likely killed during the insert')
+                setup_rpc()
+
+                # todo: end timer and calculate average time and time to finish
 
                 # Check whether there is a next block
                 while "nextblockhash" not in block:
@@ -171,8 +180,11 @@ def execute():
                     # Commit to database
                     # insert_tx_outputs(current_outputs)
                     insert_freq_analysis(current_freq_analysis)
+                    keep_rpc_alive()  # to avoid broken pipe errors
                     insert_size_analysis(current_size_analysis)
+                    keep_rpc_alive()
                     insert_file_analysis(current_file_analysis)
+                    keep_rpc_alive()
                     insert_prot_analysis(current_prot_analysis)
 
                     # current_outputs.clear()
@@ -190,6 +202,10 @@ def execute():
             logging.critical('Exception: ' + repr(e))
             log_error(e, 'Exception')
             main()
+
+
+def keep_rpc_alive():  # waiting too long between requests will break the connection to the Bitcoin RPC
+    rpc.getblockcount()
 
 
 def log_error(e, e_type):
