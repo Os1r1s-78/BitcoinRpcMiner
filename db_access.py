@@ -10,13 +10,19 @@ from dbmodels import TransactionOutput
 db, cursor = None, None
 
 
+# Splits a list into fixed-size chunks
+def chunks(split, n):
+    for i in range(0, len(split), n):
+        yield split[i:i+n]
+
+
 def setup_db():
     # Set up database connection
     logging.info('Trying to connect to the database')
     try:
         global db, cursor
         db = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' +
-                            cfg.db['database'] + ';UID=' + cfg.db['username'] + ';PWD=' + cfg.db['password'], autocommit=True)  # Add Trusted_Connection=Yes on Windows
+                            cfg.db['database'] + ';UID=' + cfg.db['username'] + ';PWD=' + cfg.db['password'] + ';Trusted_Connection=Yes', autocommit=True)  # Add Trusted_Connection=Yes on Windows
         db.setencoding(encoding='utf-8')
         cursor = db.cursor()
         logging.info('Successfully connected to the database')
@@ -81,7 +87,13 @@ def get_latest_tx_output():
 def insert_tx_outputs(outputs):
     if outputs is not None and len(outputs) > 0:
         insert = TransactionOutput.convert_to_list(outputs)
-        cursor.executemany('INSERT INTO transactionoutputs (txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', insert)
+        insert_chunks = list(chunks(insert, 1000))
+        for chunk in insert_chunks:
+            if chunk is not None and len(chunk) > 0:
+                query = 'INSERT INTO transactionoutputs (txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader) VALUES '
+                for tx in chunk:
+                    query += '(\'{0}\',{1},\'{2}\',{3},\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\')'.format(tx[0], tx[1], tx[2], tx[3], tx[4], tx[5], tx[6], tx[7], tx[8])
+                cursor.execute(query.rstrip(','))
 
 
 def insert_freq_analysis(analysis):
