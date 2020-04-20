@@ -6,6 +6,7 @@ from app import cfg
 from app import logging
 import pyodbc
 from dbmodels import TransactionOutput
+import os
 
 db, cursor = None, None
 
@@ -22,7 +23,7 @@ def setup_db():
     try:
         global db, cursor
         db = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};SERVER=' + cfg.db['server'] + ';DATABASE=' +
-                            cfg.db['database'] + ';UID=' + cfg.db['username'] + ';PWD=' + cfg.db['password'], autocommit=True)  # Add Trusted_Connection=Yes on Windows
+                            cfg.db['database'] + ';UID=' + cfg.db['username'] + ';PWD=' + cfg.db['password'] + (';Trusted_Connection=Yes' if os.name == 'nt' else ''), autocommit=True)  # Add Trusted_Connection=Yes on Windows
         db.setencoding(encoding='utf-8')
         cursor = db.cursor()
         logging.info('Successfully connected to the database')
@@ -90,9 +91,9 @@ def insert_tx_outputs(outputs):
         insert_chunks = list(chunks(insert, 1000))
         for chunk in insert_chunks:
             if chunk is not None and len(chunk) > 0:
-                query = 'INSERT INTO transactionoutputs (txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader) VALUES '
+                query = 'INSERT INTO transactionoutputs (txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader, outascii) VALUES '
                 for tx in chunk:
-                    query += '(\'{0}\',{1},\'{2}\',{3},\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\'),'.format(tx[0], tx[1], tx[2], tx[3], tx[4], tx[5], tx[6], tx[7], tx[8])
+                    query += '(\'{0}\',{1},\'{2}\',{3},\'{4}\',\'{5}\',\'{6}\',\'{7}\',\'{8}\',\'{9}\'),'.format(tx[0], tx[1], tx[2], tx[3], tx[4], tx[5], tx[6], tx[7], tx[8], tx[9])
                 cursor.execute(query.rstrip(','))
 
 

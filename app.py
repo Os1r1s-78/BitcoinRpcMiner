@@ -10,6 +10,7 @@ from db_access import *
 from dbmodels import *
 from protocols import *
 from fileheaders import *
+from binascii import unhexlify
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 
 logging.basicConfig(
@@ -128,7 +129,7 @@ def execute():
                             current_outputs.append(
                                 TransactionOutput(tx['txid'], tx['blocktime'], tx['blockhash'], tx_out['value'],
                                                   tx_out['scriptPubKey']['type'], tx_out['scriptPubKey']['asm'],
-                                                  tx_out['scriptPubKey']['hex'], protocol, file_header))
+                                                  tx_out['scriptPubKey']['hex'], protocol, file_header, hex_to_ascii(tx_out['scriptPubKey']['hex'])))
 
                             current_freq_analysis.nulldata += 1
                             current_size_analysis.avgsize += len(tx_out['scriptPubKey']['hex']) / 2  # Each byte is 2 characters long in ASCII
@@ -234,6 +235,15 @@ def binary_search_for_next_block(last_active_day):
             left = middle
 
     return rpc.getblockhash(right)
+
+
+def hex_to_ascii(hex_string):
+    result = ''
+    for i in range(1, (len(hex_string) // 2) + 1):
+        lh = hex_string[2*i-2:2*i]
+        x = int(lh, 16)
+        result += chr(x)
+    return result
 
 
 def main():

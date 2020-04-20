@@ -2,7 +2,7 @@ from psycopg2.extensions import AsIs, ISQLQuote
 
 
 class TransactionOutput:
-    def __init__(self, txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader):
+    def __init__(self, txhash, blocktime, blockhash, outvalue, outtype, outasm, outhex, protocol, fileheader, outascii):
         self.txhash = txhash
         self.blocktime = blocktime
         self.blockhash = blockhash
@@ -12,6 +12,7 @@ class TransactionOutput:
         self.outhex = outhex
         self.protocol = protocol
         self.fileheader = fileheader
+        self.outascii = outascii
 
     def __len__(self):
         return 1
@@ -26,14 +27,15 @@ class TransactionOutput:
             return AsIs('default, \'{0}\', {1}, \'{2}\', {3}, \'{4}\', \'{5}\', \'{6}\', \'{7}\', \'{8}\''.format(
                 self.txhash, self.blocktime, self.blockhash,
                 self.outvalue, self.outtype, self.outasm,
-                self.outhex, self.protocol, self.fileheader))
+                self.outhex, self.protocol, self.fileheader,
+                self.outascii))
         return None
 
     @staticmethod
     def convert_to_list(outputs):
         insert_this = []
         for output in outputs:
-            insert_this.append([output.txhash, output.blocktime, output.blockhash, output.outvalue, output.outtype, output.outasm, output.outhex, output.protocol, output.fileheader])
+            insert_this.append([output.txhash, output.blocktime, output.blockhash, output.outvalue, output.outtype, output.outasm, output.outhex, output.protocol, output.fileheader, output.outascii])
         return insert_this
 
 
