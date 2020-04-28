@@ -29,7 +29,7 @@ class Protocols(Enum):
     stampd = ['5354414d50442323']
     stampery = ['5331', '5332', '5333', '5334', '5335']
     universityofnicosia = ['554e6963444320']
-    veriblock = ['50000']
+    veriblock = ['50000', '50001']
 
 
 def determine_protocol(script_hex):
