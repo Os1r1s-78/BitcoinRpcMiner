@@ -200,12 +200,12 @@ def execute():
                     current_size_analysis.reset()
                     current_file_analysis.reset()
                     current_prot_analysis.reset()
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except JSONRPCException as e:
             logging.critical('JSONRPCException: ' + repr(e))
             log_error(e, 'JSONRPCException')
             main()
-        except (KeyboardInterrupt, SystemExit):
-            raise
         except Exception as e:
             logging.critical('Exception: ' + repr(e))
             log_error(e, 'Exception')
